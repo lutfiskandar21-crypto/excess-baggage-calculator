@@ -1,30 +1,73 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:excess_baggage_calculator/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+
+  // TEST 1 - CHECK HOME PAGE
+
+  testWidgets('Home page displays correctly', (tester) async {
+
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(
+      find.text('Baggage Fee Calculator'),
+      findsOneWidget,
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(
+      find.byType(TextField),
+      findsNWidgets(2),
+    );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(
+      find.text('Calculate'),
+      findsOneWidget,
+    );
+
+    expect(
+      find.text('Clear'),
+      findsOneWidget,
+    );
+  });
+
+  // TEST 2 - CHECK BAGGAGE CALCULATION
+
+  testWidgets('Economy baggage calculation works', (tester) async {
+
+    await tester.pumpWidget(const MyApp());
+
+    // Enter baggage weight
+    await tester.enterText(
+      find.byType(TextField).at(0),
+      '25',
+    );
+
+    // Enter excess baggage rate
+    await tester.enterText(
+      find.byType(TextField).at(1),
+      '15',
+    );
+
+    // Press calculate
+    await tester.ensureVisible(find.text('Calculate'));
+    await tester.tap(find.text('Calculate'));
+    await tester.pumpAndSettle();
+
+    // Check results
+    expect(
+      find.text('Excess Baggage Weight: 5.00 kg'),
+      findsOneWidget,
+    );
+
+    expect(
+      find.text('Excess Baggage Charge: RM 75.00'),
+      findsOneWidget,
+    );
+
+    expect(
+      find.text('Total Amount Payable: RM 81.00'),
+      findsOneWidget,
+    );
   });
 }

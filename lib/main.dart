@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
 }
+
+// MAIN APPLICATION
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -45,6 +48,17 @@ class _HomePageState extends State<HomePage> {
   String totalPayable = '0.00';
   String errorMessage = '';
 
+  // ERROR MESSAGE
+
+  void showError(String message) {
+    setState(() {
+      errorMessage = message;
+      excessWeight = '0.00';
+      excessCharge = '0.00';
+      totalPayable = '0.00';
+    });
+  }
+
   // CALCULATE BAGGAGE
 
   void calculateBaggage() {
@@ -52,16 +66,13 @@ class _HomePageState extends State<HomePage> {
     double? rate = double.tryParse(rateController.text.trim());
 
     if (weight == null || rate == null) {
-      setState(() {
-        errorMessage = 'Please enter baggage weight and rate.';
-      });
+      showError('Please enter baggage weight and rate.');
       return;
     }
 
-    if (weight < 0 || rate < 0) {
-      setState(() {
-        errorMessage = 'Please enter positive numbers or zero.';
-      });
+    if (!weight.isFinite || !rate.isFinite ||
+        weight < 0 || rate < 0) {
+      showError('Please enter valid positive numbers or zero.');
       return;
     }
 
@@ -88,7 +99,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // CLEAR BUTTON
+  // CLEAR ALL
 
   void clearAll() {
     setState(() {
@@ -112,6 +123,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       // TITLE BAR
 
       appBar: AppBar(
@@ -174,7 +186,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
 
-      // MAIN CONTENT
+      // HOME PAGE CONTENT
 
       body: SingleChildScrollView(
         child: Padding(
@@ -182,6 +194,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+
               const Icon(
                 Icons.luggage,
                 size: 65,
@@ -209,7 +222,7 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 25),
 
-              // BAGGAGE WEIGHT INPUT
+              // BAGGAGE WEIGHT
 
               TextField(
                 controller: weightController,
@@ -226,10 +239,11 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 15),
 
-              // TICKET CLASS INPUT
+              // TICKET CLASS
 
               DropdownButtonFormField<String>(
-                value: ticketClass,
+                key: ValueKey(ticketClass),
+                initialValue: ticketClass,
                 decoration: const InputDecoration(
                   labelText: 'Ticket Class',
                   prefixIcon: Icon(Icons.flight),
@@ -246,15 +260,17 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
                 onChanged: (value) {
-                  setState(() {
-                    ticketClass = value!;
-                  });
+                  if (value != null) {
+                    setState(() {
+                      ticketClass = value;
+                    });
+                  }
                 },
               ),
 
               const SizedBox(height: 15),
 
-              // EXCESS RATE INPUT
+              // EXCESS RATE
 
               TextField(
                 controller: rateController,
@@ -275,6 +291,10 @@ class _HomePageState extends State<HomePage> {
 
               ElevatedButton.icon(
                 onPressed: calculateBaggage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                ),
                 icon: const Icon(Icons.calculate),
                 label: const Text('Calculate'),
               ),
@@ -343,7 +363,7 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 20),
 
-              // INSTRUCTIONS
+              // HELPFUL NOTICE
 
               const Text(
                 'Note: Economy allows 20 kg and Business '
@@ -365,9 +385,43 @@ class _HomePageState extends State<HomePage> {
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
+  // GITHUB LINK
+
+  Future<void> openGitHub(BuildContext context) async {
+    final Uri url = Uri.parse(
+      'https://github.com/lutfiskandar21-crypto/excess-baggage-calculator',
+    );
+
+    try {
+      bool opened = await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!opened && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to open GitHub link.'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please check your browser connection.'),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
+      // ABOUT PAGE TITLE
+
       appBar: AppBar(
         title: const Text('About'),
         backgroundColor: Colors.teal,
@@ -380,7 +434,10 @@ class AboutPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+
               const SizedBox(height: 20),
+
+              // APPLICATION ICON
 
               const Icon(
                 Icons.luggage,
@@ -411,6 +468,8 @@ class AboutPage extends StatelessWidget {
 
               const Divider(),
 
+              // AUTHOR DETAILS
+
               const Text(
                 'Author Information',
                 style: TextStyle(
@@ -419,18 +478,20 @@ class AboutPage extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
 
               const ListTile(
                 leading: Icon(Icons.person),
                 title: Text('Name'),
-                subtitle: Text('Your Name'),
+                subtitle: Text(
+                  'Muhammad Lutfi Iskandar bin Mohd Faizal',
+                ),
               ),
 
               const ListTile(
                 leading: Icon(Icons.badge),
                 title: Text('Matric Number'),
-                subtitle: Text('Your Matric Number'),
+                subtitle: Text('2024409888'),
               ),
 
               const ListTile(
@@ -443,6 +504,8 @@ class AboutPage extends StatelessWidget {
 
               const Divider(),
 
+              // GITHUB REPOSITORY
+
               const Text(
                 'GitHub Repository',
                 style: TextStyle(
@@ -454,20 +517,41 @@ class AboutPage extends StatelessWidget {
               const SizedBox(height: 10),
 
               const Text(
-                'GitHub repository link will be added next.',
+                'Tap the link below to view the source code:',
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 10),
+
+              TextButton.icon(
+                onPressed: () {
+                  openGitHub(context);
+                },
+                icon: const Icon(Icons.open_in_new),
+                label: const Text(
+                  'https://github.com/lutfiskandar21-crypto/'
+                      'excess-baggage-calculator',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
+              const SizedBox(height: 20),
 
               const Divider(),
 
+              // COPYRIGHT NOTICE
+
               const Text(
-                'Copyright © 2026',
+                'Copyright © 2026\n'
+                    'Muhammad Lutfi Iskandar bin Mohd Faizal\n'
+                    'All Rights Reserved.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.grey,
+                  fontSize: 12,
                 ),
               ),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),
